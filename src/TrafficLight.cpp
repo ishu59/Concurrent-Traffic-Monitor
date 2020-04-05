@@ -24,7 +24,7 @@ TrafficLight::TrafficLight() : _currentPhase{TrafficLightPhase::red} {}
 
 void TrafficLight::waitForGreen() {
   while (true) {
-//    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    //    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     if (_light_queue.receive() == TrafficLightPhase::green)
       return;
   }
@@ -42,7 +42,12 @@ void TrafficLight::cycleThroughPhases() {
   int min = 4000, max = 6000;
   _currentPhase = TrafficLightPhase ::red;
   auto t1 = std::chrono::high_resolution_clock::now();
-  auto random_wait = min + (rand() % static_cast<int>(max - min + 1));
+  //  auto random_wait = min + (rand() % static_cast<int>(max - min + 1));
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<int> dist(4000, 6000);
+  auto random_wait = dist(gen);
   while (true) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     auto t2 = std::chrono::high_resolution_clock::now();
@@ -51,10 +56,13 @@ void TrafficLight::cycleThroughPhases() {
 
     if (timer >= random_wait) {
 
-      _currentPhase = _currentPhase == TrafficLightPhase::red ? TrafficLightPhase::green : TrafficLightPhase::red;
+      _currentPhase = _currentPhase == TrafficLightPhase::red
+                          ? TrafficLightPhase::green
+                          : TrafficLightPhase::red;
       _light_queue.send(std::move(_currentPhase));
 
-      random_wait = min + (rand() % static_cast<int>(max - min + 1));
+      //      random_wait = min + (rand() % static_cast<int>(max - min + 1));
+      random_wait = dist(gen);
       t1 = std::chrono::high_resolution_clock::now();
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
